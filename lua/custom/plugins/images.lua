@@ -16,6 +16,11 @@ return {
     '3rd/image.nvim',
     dependencies = { 'luarocks.nvim' },
     config = function()
+      if #vim.api.nvim_list_uis() == 0 then return end
+
+      local is_kitty = vim.env.TERM == 'xterm-kitty' or vim.env.KITTY_WINDOW_ID ~= nil
+      if not is_kitty then return end
+
       require('image').setup {
         backend = 'kitty',
         kitty_method = 'normal',

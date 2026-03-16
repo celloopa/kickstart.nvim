@@ -7,8 +7,10 @@ return {
     { '<Tab>', '<Cmd>BufferLineCycleNext<CR>', desc = 'Next tab' },
     { '<S-Tab>', '<Cmd>BufferLineCyclePrev<CR>', desc = 'Prev tab' },
   },
-  options = {
-    mode = 'tabs',
-    separator_style = 'slant',
+  opts = {
+    options = {
+      mode = 'tabs',
+      separator_style = 'slant',
+    },
   },
 }

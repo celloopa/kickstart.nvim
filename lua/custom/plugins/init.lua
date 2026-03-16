@@ -2,10 +2,16 @@
 --  I promise not to create any merge conflicts in this directory :)
 --
 -- See the kickstart.nvim README for more information
+
+---@module 'lazy'
+---@type LazySpec
 return {
-  'stevearc/oil.nvim',
-  opts = {},
-  -- Optional dependencies
-  dependencies = { 'nvim-tree/nvim-web-devicons' },
-  vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' }),
+  {
+    'stevearc/oil.nvim',
+    opts = {},
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    keys = {
+      { '-', '<CMD>Oil<CR>', desc = 'Open parent directory' },
+    },
+  },
 }
