@@ -696,6 +696,21 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        elixir = { 'elixir-ls' },
+        astro = { 'astro-ls', 'prettier' },
+        php = { 'pretty-php' },
+        javascript = { 'prettier', 'prettierd', stop_after_first = true },
+        html = { 'html-beautifier' },
+        typescript = { 'ts_standard' },
+        go = { 'goimports', 'gofupmt' },
+        rust = { 'rustfmt', lsp_format = 'fallback' },
+        python = function(bufnr)
+          if require('conform').get_formatter_info('ruff_format', bufnr).available then
+            return { 'ruff_format' }
+          else
+            return { 'isort', 'black' }
+          end
+        end,
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -871,33 +886,35 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     lazy = false,
     build = ':TSUpdate',
-    branch = 'main',
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
-    config = function()
-      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
-      require('nvim-treesitter').install(parsers)
-      vim.api.nvim_create_autocmd('FileType', {
-        callback = function(args)
-          local buf, filetype = args.buf, args.match
-
-          local language = vim.treesitter.language.get_lang(filetype)
-          if not language then return end
-
-          -- check if parser exists and load it
-          if not vim.treesitter.language.add(language) then return end
-          -- enables syntax highlighting and other treesitter features
-          vim.treesitter.start(buf, language)
-
-          -- enables treesitter based folds
-          -- for more info on folds see `:help folds`
-          -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-          -- vim.wo.foldmethod = 'expr'
-
-          -- enables treesitter based indentation
-          vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-        end,
-      })
-    end,
+    main = 'nvim-treesitter.configs',
+    opts = {
+      ensure_installed = {
+        'astro',
+        'bash',
+        'c',
+        'css',
+        'diff',
+        'elixir',
+        'go',
+        'html',
+        'javascript',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'python',
+        'query',
+        'typescript',
+        'vim',
+        'vimdoc',
+      },
+      auto_install = true,
+      highlight = {
+        enable = true,
+        additional_vim_regex_highlighting = { 'ruby' },
+      },
+      indent = { enable = true, disable = { 'ruby' } },
+    },
   },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the

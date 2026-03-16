@@ -2,14 +2,28 @@ return {
   {
     'pmizio/typescript-tools.nvim',
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+    init = function()
+      vim.keymap.set('n', '<leader>ee', 'oif err != nil {<CR>}<Esc>Oreturn err<Esc>', {
+        noremap = true,
+        desc = 'Go [E][E]rrors',
+      })
+    end,
     opts = {},
   },
-  -- Go Errors
-  vim.keymap.set('n', '<leader>ee', 'oif err != nil {<CR>}<Esc>Oreturn err<Esc>', { noremap = true, desc = 'Go [E][E]rrors' }),
   {
     'wuelnerdotexe/vim-astro',
-    astro_typescript = 'enable',
-    astro_stylus = 'enable',
+    init = function()
+      vim.g.astro_typescript = 'enable'
+      vim.g.astro_stylus = 'enable'
+    end,
+  },
+  {
+    'rafamadriz/friendly-snippets',
+    config = function()
+      require('luasnip.loaders.from_vscode').lazy_load()
+      require('luasnip.loaders.from_vscode').lazy_load { paths = { vim.fn.stdpath 'config' .. '/snippets' } }
+      require('luasnip').filetype_extend('astro', { 'typescript', 'html' })
+    end,
   },
   {
     'virchau13/tree-sitter-astro',
@@ -21,13 +35,14 @@ return {
     keys = {
       { '"', mode = { 'n', 'v' } },
       { '<C-R>', mode = 'i' },
+      { '<leader>rg', '<cmd>Registers<CR>', desc = '[R]e[G]isters' },
     },
     name = 'registers',
-    vim.keymap.set('n', '<leader>rg', ':Registers', { noremap = true, desc = '[R]e[G]isters' }),
   },
   {
     'luckasRanarison/tailwind-tools.nvim',
     name = 'tailwind-tools',
+    enabled = false,
     build = ':UpdateRemotePlugins',
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
