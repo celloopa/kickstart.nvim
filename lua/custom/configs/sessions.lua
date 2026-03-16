@@ -1,5 +1,3 @@
--- ~/.config/nvim/lua/custom/configs/sessions.lua ------------------
-local obs = require 'obsidian'
 local Path = require 'plenary.path'
 local M = {}
 
@@ -66,9 +64,21 @@ local WORKSPACE_CONFIG = {
   },
 }
 
+local function current_workspace()
+  local buf_path = vim.api.nvim_buf_get_name(0)
+  if buf_path ~= '' then
+    local workspace = require('obsidian.api').find_workspace(buf_path)
+    if workspace then
+      return workspace
+    end
+  end
+
+  return Obsidian.workspace
+end
+
 local function current_workspace_config()
-  local client = obs.get_client()
-  local workspace = client.current_workspace and client.current_workspace.name or 'main'
+  local workspace = current_workspace()
+  workspace = workspace and workspace.name or 'main'
   return WORKSPACE_CONFIG[workspace] or WORKSPACE_CONFIG.main
 end
 
@@ -84,7 +94,7 @@ local function open_and_fill(abs_path, template, vars)
 
   if vim.fn.line '$' == 1 and vim.fn.getline(1) == '' then
     -- drop the template
-    local ok = pcall(vim.cmd, { cmd = 'ObsidianTemplate', args = { template } })
+    local ok = pcall(vim.cmd, { cmd = 'Obsidian', args = { 'template', template } })
     if not ok then
       vim.notify("Template '" .. template .. "' not found", vim.log.levels.WARN)
     end
@@ -99,7 +109,6 @@ end
 -- -----------------------------------------------------------------
 -- public helpers
 local function new_note(kind, title)
-  local client = obs.get_client()
   local config = current_workspace_config()[kind]
 
   if not config then
@@ -107,7 +116,7 @@ local function new_note(kind, title)
     return
   end
 
-  local dir = client.dir / config.folder
+  local dir = current_workspace().root / config.folder
   open_and_fill(dir / config.file_name(title), config.template, config.vars(title))
 end
 

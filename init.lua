@@ -91,7 +91,9 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = true
+vim.g.have_nerd_font = false
+
+require 'custom.core'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -102,7 +104,7 @@ vim.g.have_nerd_font = true
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
-vim.o.relativenumber = true
+-- vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
@@ -696,21 +698,6 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        elixir = { 'elixir-ls' },
-        astro = { 'astro-ls', 'prettier' },
-        php = { 'pretty-php' },
-        javascript = { 'prettier', 'prettierd', stop_after_first = true },
-        html = { 'html-beautifier' },
-        typescript = { 'ts_standard' },
-        go = { 'goimports', 'gofupmt' },
-        rust = { 'rustfmt', lsp_format = 'fallback' },
-        python = function(bufnr)
-          if require('conform').get_formatter_info('ruff_format', bufnr).available then
-            return { 'ruff_format' }
-          else
-            return { 'isort', 'black' }
-          end
-        end,
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -888,32 +875,10 @@ require('lazy').setup({
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
     opts = {
-      ensure_installed = {
-        'astro',
-        'bash',
-        'c',
-        'css',
-        'diff',
-        'elixir',
-        'go',
-        'html',
-        'javascript',
-        'lua',
-        'luadoc',
-        'markdown',
-        'markdown_inline',
-        'python',
-        'query',
-        'typescript',
-        'vim',
-        'vimdoc',
-      },
-      auto_install = true,
-      highlight = {
-        enable = true,
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      auto_install = false,
+      highlight = { enable = true },
+      indent = { enable = true },
     },
   },
 

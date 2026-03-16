@@ -2,12 +2,6 @@ return {
   {
     'pmizio/typescript-tools.nvim',
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
-    init = function()
-      vim.keymap.set('n', '<leader>ee', 'oif err != nil {<CR>}<Esc>Oreturn err<Esc>', {
-        noremap = true,
-        desc = 'Go [E][E]rrors',
-      })
-    end,
     opts = {},
   },
   {
