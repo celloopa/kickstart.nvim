@@ -810,6 +810,7 @@ require('lazy').setup({
     config = function()
       ---@diagnostic disable-next-line: missing-fields
       require('tokyonight').setup {
+        transparent = vim.g.transparent_enabled,
         styles = {
           comments = { italic = false }, -- Disable italics in comments
         },

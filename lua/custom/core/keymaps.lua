@@ -25,6 +25,12 @@ vim.keymap.set('n', 'SS', '<cmd>write<CR>', {
   desc = 'Save buffer',
 })
 
+vim.keymap.set('n', 'S', '<Nop>', {
+  noremap = true,
+  silent = true,
+  desc = 'Disabled to preserve SS save mapping',
+})
+
 vim.keymap.set('n', '<leader>l', 'ggVG', {
   noremap = true,
   desc = 'Select whole buffer',
