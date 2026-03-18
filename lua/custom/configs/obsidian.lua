@@ -94,9 +94,10 @@ function M.new_checkbox_below()
 end
 
 function M.wrap_visual_in_code_block(lang)
-  lang = lang or prompt_language()
   local start_row = vim.fn.line "'<"
   local end_row = vim.fn.line "'>"
+
+  lang = lang or prompt_language()
 
   if start_row == 0 or end_row == 0 then
     return
