@@ -74,10 +74,8 @@ local function start_insert_at_eol(row)
   vim.cmd 'startinsert'
 end
 
-function M.toggle_checkbox_and_insert()
+function M.toggle_checkbox()
   vim.cmd { cmd = 'Obsidian', args = { 'toggle_checkbox' } }
-  local row = vim.api.nvim_win_get_cursor(0)[1]
-  start_insert_at_eol(row)
 end
 
 function M.new_checkbox_below()
@@ -136,9 +134,14 @@ function M.set_note_keymaps(bufnr)
     buffer = bufnr,
     desc = 'Follow note link or use gf',
   })
-  vim.keymap.set('n', '<leader>ch', M.toggle_checkbox_and_insert, {
+  vim.keymap.set('n', '<leader>ch', M.toggle_checkbox, {
     buffer = bufnr,
-    desc = 'Toggle checkbox + insert',
+    desc = 'Toggle checkbox',
+  })
+  vim.keymap.set('x', '<leader>ch', [[:<C-u>'<,'>Obsidian toggle_checkbox<CR>gv]], {
+    buffer = bufnr,
+    silent = true,
+    desc = 'Toggle checkbox',
   })
   vim.keymap.set('n', '<leader>cn', M.new_checkbox_below, {
     buffer = bufnr,
