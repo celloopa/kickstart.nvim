@@ -5,6 +5,9 @@ return {
     'obsidian-nvim/obsidian.nvim',
     version = '*',
     lazy = true,
+    init = function()
+      vim.g.markdown_syntax_conceal = 0
+    end,
     ft = 'markdown',
     cmd = {
       'Obsidian',
