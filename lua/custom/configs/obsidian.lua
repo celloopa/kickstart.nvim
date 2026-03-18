@@ -180,13 +180,13 @@ function M.set_note_keymaps(bufnr)
     buffer = bufnr,
     desc = 'New checkbox + insert',
   })
-  vim.keymap.set('x', '<leader>cb', function()
+  vim.keymap.set('x', '<leader>cd', function()
     M.wrap_visual_in_code_block()
   end, {
     buffer = bufnr,
     desc = 'Wrap selection in code block',
   })
-  vim.keymap.set('n', '<leader>cB', function()
+  vim.keymap.set('n', '<leader>cc', function()
     M.new_code_block()
   end, {
     buffer = bufnr,
