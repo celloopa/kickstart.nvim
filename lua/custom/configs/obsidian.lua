@@ -74,6 +74,11 @@ local function start_insert_at_eol(row)
   vim.cmd 'startinsert'
 end
 
+local function prompt_language(default)
+  local lang = vim.fn.input('Code block language: ', default or '')
+  return vim.trim(lang)
+end
+
 function M.toggle_checkbox()
   vim.cmd { cmd = 'Obsidian', args = { 'toggle_checkbox' } }
 end
@@ -85,6 +90,34 @@ function M.new_checkbox_below()
 
   vim.api.nvim_buf_set_lines(0, row, row, false, { checkbox })
   vim.api.nvim_win_set_cursor(0, { row + 1, #checkbox })
+  vim.cmd 'startinsert'
+end
+
+function M.wrap_visual_in_code_block(lang)
+  lang = lang or prompt_language()
+  local start_row = vim.fn.line "'<"
+  local end_row = vim.fn.line "'>"
+
+  if start_row == 0 or end_row == 0 then
+    return
+  end
+
+  if start_row > end_row then
+    start_row, end_row = end_row, start_row
+  end
+
+  vim.api.nvim_buf_set_lines(0, end_row, end_row, false, { '```' })
+  vim.api.nvim_buf_set_lines(0, start_row - 1, start_row - 1, false, { '```' .. lang })
+  vim.api.nvim_win_set_cursor(0, { start_row, 0 })
+end
+
+function M.new_code_block(lang)
+  lang = lang or prompt_language()
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local lines = { '```' .. lang, '', '```' }
+
+  vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+  vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
   vim.cmd 'startinsert'
 end
 
@@ -146,6 +179,18 @@ function M.set_note_keymaps(bufnr)
   vim.keymap.set('n', '<leader>cn', M.new_checkbox_below, {
     buffer = bufnr,
     desc = 'New checkbox + insert',
+  })
+  vim.keymap.set('x', '<leader>cb', function()
+    M.wrap_visual_in_code_block()
+  end, {
+    buffer = bufnr,
+    desc = 'Wrap selection in code block',
+  })
+  vim.keymap.set('n', '<leader>cB', function()
+    M.new_code_block()
+  end, {
+    buffer = bufnr,
+    desc = 'New code block + insert',
   })
 end
 
