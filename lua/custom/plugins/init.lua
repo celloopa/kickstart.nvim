@@ -8,7 +8,26 @@
 return {
   {
     'stevearc/oil.nvim',
-    opts = {},
+    opts = {
+      keymaps = {
+        ['o'] = {
+          mode = 'n',
+          desc = 'New entry below',
+          callback = function()
+            vim.cmd 'normal! o'
+          end,
+        },
+        ['O'] = {
+          mode = 'n',
+          desc = 'New entry above',
+          callback = function()
+            vim.cmd 'normal! O'
+          end,
+        },
+        ['gp'] = 'actions.preview',
+        ['<C-p>'] = false,
+      },
+    },
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     keys = {
       { '-', '<CMD>Oil<CR>', desc = 'Open parent directory' },
