@@ -16,6 +16,7 @@ return {
           desc = 'New entry below',
           callback = function()
             vim.cmd 'normal! o'
+            vim.cmd 'startinsert'
           end,
         },
         ['O'] = {
@@ -23,6 +24,7 @@ return {
           desc = 'New entry above',
           callback = function()
             vim.cmd 'normal! O'
+            vim.cmd 'startinsert'
           end,
         },
         ['gp'] = 'actions.preview',
