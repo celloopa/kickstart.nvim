@@ -6,6 +6,8 @@ return {
     -- Neovim users.
     -- https://github.com/vhyrro/luarocks.nvim
     'vhyrro/luarocks.nvim',
+    -- Needs a Lua toolchain and ImageMagick; skip on Windows.
+    cond = function() return vim.fn.has 'win32' == 0 end,
     -- this plugin needs to run before anything else
     priority = 1001,
     opts = {
@@ -14,6 +16,8 @@ return {
   },
   {
     '3rd/image.nvim',
+    -- Needs the kitty graphics protocol and ImageMagick; skip on Windows.
+    cond = function() return vim.fn.has 'win32' == 0 end,
     dependencies = { 'luarocks.nvim' },
     config = function()
       if #vim.api.nvim_list_uis() == 0 then return end

@@ -396,11 +396,18 @@ function M.apply_note_buffer(bufnr)
   M.set_note_keymaps(bufnr)
 end
 
+-- Keep only workspaces whose vault directory exists on this machine.
+-- obsidian.nvim errors on a missing workspace path, and the Mac vaults are
+-- not present on the Windows PC.
+local function existing_workspaces(workspaces)
+  return vim.tbl_filter(function(ws) return vim.fn.isdirectory(vim.fn.expand(ws.path)) == 1 end, workspaces)
+end
+
 function M.opts()
   return {
     legacy_commands = false,
 
-    workspaces = {
+    workspaces = existing_workspaces {
       {
         name = 'main',
         path = '~/Documents/cello-main/',
