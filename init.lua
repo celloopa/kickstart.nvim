@@ -353,7 +353,8 @@ require('lazy').setup({
 
         -- `build` is used to run some command when the plugin is installed/updated.
         -- This is only run then, not every time Neovim starts up.
-        build = 'make',
+        -- On Windows there is no gcc; zig (winget zig.zig) provides a C compiler.
+        build = vim.fn.has 'win32' == 1 and 'make CC="zig cc"' or 'make',
 
         -- `cond` is a condition used to determine whether this plugin should be
         -- installed and loaded.

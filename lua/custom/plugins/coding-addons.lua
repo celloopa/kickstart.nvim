@@ -24,6 +24,9 @@ return {
   },
   {
     'tversteeg/registers.nvim',
+    -- github.com/tversteeg/registers.nvim returned "Repository not found" on 2026-10-21,
+    -- which makes lazy.nvim fail every startup with "Too many rounds of missing plugins".
+    enabled = false,
     cmd = 'Registers',
     config = true,
     keys = {
