@@ -5,6 +5,158 @@ local function date_offset(days)
   return os.date('%Y-%m-%d', os.time() + (days * 86400))
 end
 
+local function template_timestamp(ctx)
+  local path
+  if ctx and ctx.destination_path then
+    path = tostring(ctx.destination_path)
+  else
+    path = vim.api.nvim_buf_get_name(0)
+  end
+
+  local year, month, day = tostring(path):match('(%d%d%d%d)%-(%d%d)%-(%d%d)')
+  if year and month and day then
+    return os.time {
+      year = tonumber(year),
+      month = tonumber(month),
+      day = tonumber(day),
+      hour = 12,
+    }
+  end
+
+  return os.time()
+end
+
+local function week_start_timestamp(ctx)
+  local timestamp = template_timestamp(ctx)
+  local weekday = tonumber(os.date('%w', timestamp))
+  local days_since_monday = (weekday + 6) % 7
+
+  return timestamp - (days_since_monday * 86400)
+end
+
+local function week_start_date(timestamp)
+  local weekday = tonumber(os.date('%w', timestamp))
+  local days_since_monday = (weekday + 6) % 7
+
+  return os.date('%Y-%m-%d', timestamp - (days_since_monday * 86400))
+end
+
+local function daily_dir(ctx)
+  if ctx and ctx.destination_path then
+    local path = vim.fs.normalize(vim.fn.fnamemodify(tostring(ctx.destination_path), ':p'))
+    local dir = vim.fs.dirname(path)
+    if dir then
+      return dir
+    end
+  end
+
+  local current = workspace.current(0)
+  if current then
+    local opts = current.opts or Obsidian.opts
+    local folder = opts.daily_notes and opts.daily_notes.folder or Obsidian.opts.daily_notes.folder
+    if folder then
+      return vim.fs.normalize(tostring(current.root / folder))
+    end
+  end
+end
+
+local function date_from_daily_path(path)
+  local year, month, day = vim.fs.basename(path):match('^(%d%d%d%d)%-(%d%d)%-(%d%d)%.md$')
+  if not year then
+    return
+  end
+
+  return string.format('%s-%s-%s', year, month, day),
+    os.time {
+      year = tonumber(year),
+      month = tonumber(month),
+      day = tonumber(day),
+      hour = 12,
+    }
+end
+
+local function section_lines(path, heading_pattern)
+  local lines = vim.fn.readfile(path)
+  local start_idx
+
+  for idx, line in ipairs(lines) do
+    if line:match(heading_pattern) then
+      start_idx = idx + 1
+      break
+    end
+  end
+
+  if not start_idx then
+    return
+  end
+
+  local result = {}
+  for idx = start_idx, #lines do
+    local line = lines[idx]
+    if line:match '^##%s+' then
+      break
+    end
+    result[#result + 1] = line
+  end
+
+  while result[1] == '' do
+    table.remove(result, 1)
+  end
+  while result[#result] == '' do
+    table.remove(result)
+  end
+
+  if #result == 0 then
+    return
+  end
+
+  return table.concat(result, '\n')
+end
+
+local function persisted_daily_section(ctx, same_period, heading_pattern)
+  local dir = daily_dir(ctx)
+  if not dir or vim.fn.isdirectory(dir) == 0 then
+    return '- [ ] '
+  end
+
+  local target_date = os.date('%Y-%m-%d', template_timestamp(ctx))
+  local latest_date
+  local latest_path
+
+  for name, type_name in vim.fs.dir(dir) do
+    if type_name == 'file' then
+      local path = vim.fs.joinpath(dir, name)
+      local date, timestamp = date_from_daily_path(path)
+      if date and date < target_date and same_period(timestamp) and (not latest_date or date > latest_date) then
+        latest_date = date
+        latest_path = path
+      end
+    end
+  end
+
+  if not latest_path then
+    return '- [ ] '
+  end
+
+  return section_lines(latest_path, heading_pattern) or '- [ ] '
+end
+
+local function persisted_week_section(ctx)
+  local week_start = os.date('%Y-%m-%d', week_start_timestamp(ctx))
+
+  return persisted_daily_section(ctx, function(timestamp)
+    return week_start_date(timestamp) == week_start
+  end, '^##%s+Week')
+end
+
+local function persisted_month_section(ctx)
+  local month = os.date('%Y-%m', template_timestamp(ctx))
+
+  return persisted_daily_section(ctx, function(timestamp)
+    return os.date('%Y-%m', timestamp) == month
+  end, '^##%s+%a+%s+%d%d%d%d$')
+end
+
 local function follow_link_or_gf()
   if require('obsidian.api').cursor_link() then
     return '<cmd>Obsidian follow_link<CR>'
@@ -90,7 +242,7 @@ function M.new_checkbox_below()
 
   vim.api.nvim_buf_set_lines(0, row, row, false, { checkbox })
   vim.api.nvim_win_set_cursor(0, { row + 1, #checkbox })
-  vim.cmd 'startinsert'
+  vim.cmd 'startinsert!'
 end
 
 function M.wrap_visual_in_code_block(lang)
@@ -223,6 +375,27 @@ function M.set_note_window_options(bufnr)
   end
 end
 
+function M.apply_note_buffer(bufnr)
+  bufnr = bufnr or 0
+
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+
+  local filetype = vim.bo[bufnr].filetype
+  if filetype ~= 'markdown' and filetype ~= 'quarto' then
+    return
+  end
+
+  local current_workspace = workspace.sync(bufnr)
+  if not current_workspace then
+    return
+  end
+
+  M.set_note_window_options(bufnr)
+  M.set_note_keymaps(bufnr)
+end
+
 function M.opts()
   return {
     legacy_commands = false,
@@ -270,6 +443,9 @@ function M.opts()
       date_format = '%Y-%m-%d',
       time_format = '%H:%M',
       substitutions = {
+        date = function(ctx, suffix)
+          return os.date(suffix or Obsidian.opts.templates.date_format, template_timestamp(ctx))
+        end,
         today = function()
           return os.date '%Y-%m-%d'
         end,
@@ -282,6 +458,20 @@ function M.opts()
         now = function()
           return os.date '%Y-%m-%d-%H:%M'
         end,
+        week = function(ctx)
+          return os.date('%G-W%V', template_timestamp(ctx))
+        end,
+        week_start = function(ctx)
+          return os.date('%Y-%m-%d', week_start_timestamp(ctx))
+        end,
+        month = function(ctx)
+          return os.date('%Y-%m', template_timestamp(ctx))
+        end,
+        month_name = function(ctx)
+          return os.date('%B %Y', template_timestamp(ctx))
+        end,
+        week_persist = persisted_week_section,
+        month_persist = persisted_month_section,
       },
     },
 
@@ -306,22 +496,20 @@ function M.setup(_, opts)
     group = group,
     pattern = { 'markdown', 'quarto' },
     callback = function(ev)
-      local buf_path = vim.api.nvim_buf_get_name(ev.buf)
-      if buf_path ~= '' and require('obsidian.api').find_workspace(buf_path) then
-        workspace.sync(ev.buf)
-        M.set_note_window_options(ev.buf)
-      end
+      M.apply_note_buffer(ev.buf)
     end,
   })
   vim.api.nvim_create_autocmd('User', {
     group = group,
     pattern = 'ObsidianNoteEnter',
     callback = function(ev)
-      workspace.sync(ev.buf)
-      M.set_note_window_options(ev.buf)
-      M.set_note_keymaps(ev.buf)
+      M.apply_note_buffer(ev.buf)
     end,
   })
+
+  vim.schedule(function()
+    M.apply_note_buffer(0)
+  end)
 
   local km = vim.keymap.set
   km('n', '<leader>zn', '<cmd>Obsidian search<CR>', { desc = 'Search / new note' })
